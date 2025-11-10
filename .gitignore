@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+
+# Arduino
+*.hex
+*.elf
+*.bin
+*.map
+build/
+.build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Captures folder (images)
+captures/*.jpg
+captures/*.jpeg
+captures/*.png
+
+# Keep captures folder structure
+!captures/.gitkeep
+
+# Old files
+README_OLD.md
+
+# Logs
+*.log
