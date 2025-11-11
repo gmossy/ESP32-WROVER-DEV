@@ -7,7 +7,13 @@ Complete Docker setup for running n8n automation with your ESP32 camera system.
 ### 1. Start Docker Services
 
 ```bash
+cd n8n
 docker-compose up -d
+```
+
+Or from the project root:
+```bash
+make docker
 ```
 
 This starts:
@@ -120,54 +126,54 @@ DELETE http://image-viewer:8080/api/delete/{filename}
 
 ### Start Services
 ```bash
-docker-compose up -d
+cd n8n && docker-compose up -d
+# or: make docker
 ```
 
 ### Stop Services
 ```bash
-docker-compose down
+cd n8n && docker-compose down
+# or: make docker-stop
 ```
 
 ### View Logs
 ```bash
-# All services
-docker-compose logs -f
-
-# Just n8n
-docker-compose logs -f n8n
-
-# Just image viewer
-docker-compose logs -f image-viewer
+cd n8n && docker-compose logs -f
+# or: make docker-logs
 ```
 
 ### Restart Services
 ```bash
-docker-compose restart
+cd n8n && docker-compose restart
 ```
 
 ### Rebuild After Changes
 ```bash
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
+cd n8n && docker-compose down
+cd n8n && docker-compose build --no-cache
+cd n8n && docker-compose up -d
+# or: make docker-rebuild
 ```
 
 ### Check Status
 ```bash
-docker-compose ps
+cd n8n && docker-compose ps
 ```
 
 ## 📁 Directory Structure
 
 ```
 ESP32-webserver/
-├── docker-compose.yml          # Main Docker configuration
-├── Dockerfile.viewer           # Image viewer container
+├── n8n/                       # Docker & n8n automation
+│   ├── README.md              # This file
+│   ├── N8N_INTEGRATION.md     # n8n integration guide
+│   ├── docker-compose.yml     # Main Docker configuration
+│   ├── Dockerfile.viewer      # Image viewer container
+│   └── n8n-workflows/         # Optional: Pre-made workflows
 ├── view_captures.py           # API server code
 ├── captures/                  # Persistent image storage
 │   └── .gitkeep
-└── n8n-workflows/            # Optional: Pre-made workflows
-    └── esp32-camera.json
+└── ...                        # Other project files
 ```
 
 ## 🔒 Security Notes

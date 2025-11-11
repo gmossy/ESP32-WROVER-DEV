@@ -168,25 +168,28 @@ HTTP Request (GET /api/capture)
 Send Email/Slack (with image)
 ```
 
-**See [N8N_INTEGRATION.md](N8N_INTEGRATION.md) for complete guide!**
+**See [n8n/N8N_INTEGRATION.md](n8n/N8N_INTEGRATION.md) for complete guide!**
 
 ## 📁 Project Structure
 
 ```text
 ESP32-WROVER-DEV/
 ├── README.md                    # You are here!
-├── N8N_INTEGRATION.md          # Complete n8n integration guide
-├── API_QUICK_REFERENCE.md      # Quick API reference
+├── CONFIGURATION.md             # WiFi credentials setup guide
+├── API_QUICK_REFERENCE.md       # Quick API reference
+├── Makefile                     # Build automation
 ├── camera_webserver/
 │   └── camera_webserver.ino    # Main camera sketch
 ├── low_power_webserver/
 │   └── low_power_webserver.ino # Power-optimized version
-├── simple_test/
-│   └── simple_test.ino         # Hardware test sketch
-├── test/
-│   └── test.ino                # Serial test sketch
+├── n8n/                        # Docker & n8n automation
+│   ├── README.md               # Docker setup guide
+│   ├── N8N_INTEGRATION.md      # n8n integration guide
+│   ├── docker-compose.yml      # Docker services
+│   └── Dockerfile.viewer       # Image viewer container
 ├── view_captures.py            # Image gallery web server
 ├── test.py                     # Diagnostic & testing script
+├── generate_config.py          # Config generator from .env
 └── captures/                   # Saved images folder
 ```
 

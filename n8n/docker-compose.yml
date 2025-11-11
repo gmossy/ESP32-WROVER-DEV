@@ -28,15 +28,15 @@ services:
   # Python image viewer and API server
   image-viewer:
     build:
-      context: .
-      dockerfile: Dockerfile.viewer
+      context: ..
+      dockerfile: n8n/Dockerfile.viewer
     container_name: esp32-image-viewer
     restart: unless-stopped
     ports:
       - "8080:8080"
     volumes:
-      - ./captures:/app/captures
-      - ./view_captures.py:/app/view_captures.py
+      - ../captures:/app/captures
+      - ../view_captures.py:/app/view_captures.py
     environment:
       - ESP32_IP=10.0.0.30
       - PORT=8080
