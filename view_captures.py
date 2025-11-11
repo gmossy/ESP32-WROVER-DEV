@@ -34,112 +34,286 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 images = []
             
-            # Generate HTML
+            # Generate HTML with Arduino branding
             html = """
             <!DOCTYPE html>
             <html>
             <head>
-                <title>ESP32 Camera Captures</title>
+                <title>ESP32 Camera Gallery - Arduino</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    
                     body {
-                        font-family: Arial, sans-serif;
-                        margin: 20px;
-                        background-color: #f0f0f0;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        background: linear-gradient(135deg, #00979D 0%, #00878C 100%);
+                        min-height: 100vh;
+                        display: flex;
                     }
-                    h1 {
-                        color: #333;
-                        text-align: center;
-                    }
-                    .info {
-                        text-align: center;
-                        margin: 20px 0;
-                        padding: 15px;
-                        background-color: #4CAF50;
+                    
+                    /* Arduino Sidebar */
+                    .sidebar {
+                        width: 280px;
+                        background: #00979D;
                         color: white;
-                        border-radius: 5px;
+                        padding: 20px;
+                        box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+                        display: flex;
+                        flex-direction: column;
+                        position: fixed;
+                        height: 100vh;
+                        overflow-y: auto;
                     }
-                    .controls {
+                    
+                    .logo {
                         text-align: center;
-                        margin: 20px 0;
+                        margin-bottom: 30px;
+                        padding-bottom: 20px;
+                        border-bottom: 2px solid rgba(255,255,255,0.2);
                     }
-                    button {
-                        padding: 10px 20px;
-                        font-size: 16px;
-                        margin: 5px;
-                        cursor: pointer;
-                        background-color: #008CBA;
+                    
+                    .logo h1 {
+                        color: white;
+                        font-size: 24px;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .logo p {
+                        color: rgba(255,255,255,0.8);
+                        font-size: 12px;
+                    }
+                    
+                    .nav-section {
+                        margin-bottom: 25px;
+                    }
+                    
+                    .nav-section h3 {
+                        color: rgba(255,255,255,0.7);
+                        font-size: 12px;
+                        text-transform: uppercase;
+                        margin-bottom: 10px;
+                        letter-spacing: 1px;
+                    }
+                    
+                    .nav-button {
+                        width: 100%;
+                        padding: 12px 15px;
+                        margin: 5px 0;
+                        background: rgba(255,255,255,0.1);
                         color: white;
                         border: none;
-                        border-radius: 4px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        transition: all 0.3s;
+                        text-align: left;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
                     }
-                    button:hover {
-                        background-color: #007399;
+                    
+                    .nav-button:hover {
+                        background: rgba(255,255,255,0.2);
+                        transform: translateX(5px);
                     }
+                    
+                    .nav-button.primary {
+                        background: #E47128;
+                    }
+                    
+                    .nav-button.primary:hover {
+                        background: #D35F1E;
+                    }
+                    
+                    .stats {
+                        background: rgba(255,255,255,0.1);
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-top: auto;
+                    }
+                    
+                    .stat-item {
+                        display: flex;
+                        justify-content: space-between;
+                        margin: 8px 0;
+                        font-size: 13px;
+                    }
+                    
+                    .stat-label {
+                        color: rgba(255,255,255,0.7);
+                    }
+                    
+                    .stat-value {
+                        color: white;
+                        font-weight: bold;
+                    }
+                    
+                    /* Main Content */
+                    .main-content {
+                        margin-left: 280px;
+                        flex: 1;
+                        padding: 30px;
+                        overflow-y: auto;
+                    }
+                    
+                    .header {
+                        background: white;
+                        padding: 20px 30px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    
+                    .header h2 {
+                        color: #00979D;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .header p {
+                        color: #666;
+                    }
+                    
+                    .live-feed {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    
+                    .live-feed h3 {
+                        color: #00979D;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .live-feed img {
+                        width: 100%;
+                        max-width: 800px;
+                        border: 3px solid #00979D;
+                        border-radius: 8px;
+                        display: block;
+                        margin: 0 auto;
+                    }
+                    
                     .gallery {
                         display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
                         gap: 20px;
-                        margin-top: 20px;
                     }
+                    
                     .image-card {
-                        background-color: white;
-                        border-radius: 8px;
-                        padding: 10px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        background: white;
+                        border-radius: 12px;
+                        padding: 15px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        transition: transform 0.3s, box-shadow 0.3s;
                     }
+                    
+                    .image-card:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+                    }
+                    
                     .image-card img {
                         width: 100%;
-                        height: auto;
-                        border-radius: 4px;
+                        height: 200px;
+                        object-fit: cover;
+                        border-radius: 8px;
                         cursor: pointer;
+                        border: 2px solid #e0e0e0;
                     }
-                    .image-card img:hover {
-                        opacity: 0.8;
-                    }
+                    
                     .image-info {
-                        margin-top: 10px;
+                        margin-top: 12px;
                         font-size: 12px;
                         color: #666;
                     }
+                    
+                    .image-info strong {
+                        color: #00979D;
+                        display: block;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .image-actions {
+                        margin-top: 12px;
+                        display: flex;
+                        gap: 8px;
+                    }
+                    
+                    .btn-rename {
+                        flex: 1;
+                        background: #E47128;
+                        color: white;
+                        border: none;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        transition: background 0.3s;
+                    }
+                    
+                    .btn-rename:hover {
+                        background: #D35F1E;
+                    }
+                    
+                    .btn-delete {
+                        flex: 1;
+                        background: #DC3545;
+                        color: white;
+                        border: none;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        transition: background 0.3s;
+                    }
+                    
+                    .btn-delete:hover {
+                        background: #C82333;
+                    }
+                    
+                    .btn-chat {
+                        flex: 1;
+                        background: #00979D;
+                        color: white;
+                        border: none;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        transition: background 0.3s;
+                    }
+                    
+                    .btn-chat:hover {
+                        background: #00878C;
+                    }
+                    
                     .no-images {
                         text-align: center;
-                        padding: 40px;
+                        padding: 60px 20px;
                         color: #999;
+                        background: white;
+                        border-radius: 12px;
                     }
-                    .live-feed {
-                        text-align: center;
-                        margin: 20px 0;
-                        padding: 20px;
-                        background-color: white;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    }
-                    .live-feed img {
-                        max-width: 100%;
-                        border: 2px solid #333;
-                        border-radius: 4px;
-                    }
-                    .image-actions {
-                        margin-top: 10px;
-                        display: flex;
-                        gap: 5px;
-                        flex-wrap: wrap;
-                    }
-                    .btn-delete {
-                        background-color: #f44336;
-                        padding: 5px 10px;
-                        font-size: 12px;
-                    }
-                    .btn-delete:hover {
-                        background-color: #da190b;
-                    }
-                    .btn-rename {
-                        background-color: #ff9800;
-                        padding: 5px 10px;
-                        font-size: 12px;
-                    }
-                    .btn-rename:hover {
-                        background-color: #e68900;
+                    
+                    /* Responsive */
+                    @media (max-width: 768px) {
+                        .sidebar {
+                            width: 100%;
+                            position: relative;
+                            height: auto;
+                        }
+                        .main-content {
+                            margin-left: 0;
+                        }
+                        body {
+                            flex-direction: column;
+                        }
                     }
                 </style>
                 <script>
@@ -211,29 +385,75 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                     
                     // Auto-refresh live feed every 5 seconds
                     setInterval(captureLive, 5000);
+                    function chatWithImage(filename) {
+                        alert('Chat feature coming soon! You can integrate with AI services like OpenAI Vision to analyze: ' + filename);
+                        // TODO: Implement chat/AI analysis feature
+                    }
+                    
+                    // Auto-refresh live feed every 5 seconds
+                    setInterval(captureLive, 5000);
                 </script>
             </head>
             <body>
-                <h1>📷 ESP32 Camera Captures</h1>
-                
-                <div class="info">
-                    <strong>Camera Status:</strong> Connected to 10.0.0.30<br>
-                    <strong>Total Captures:</strong> """ + str(len(images)) + """ images
+                <!-- Arduino-styled Sidebar -->
+                <div class="sidebar">
+                    <div class="logo">
+                        <h1>🎥 ESP32 CAM</h1>
+                        <p>Arduino Camera Gallery</p>
+                    </div>
+                    
+                    <div class="nav-section">
+                        <h3>Actions</h3>
+                        <button class="nav-button primary" onclick="captureLive()">
+                            📸 Capture New Image
+                        </button>
+                        <button class="nav-button" onclick="refreshPage()">
+                            🔄 Refresh Gallery
+                        </button>
+                        <button class="nav-button" onclick="window.open('http://10.0.0.30', '_blank')">
+                            🌐 ESP32 Interface
+                        </button>
+                    </div>
+                    
+                    <div class="nav-section">
+                        <h3>Settings</h3>
+                        <button class="nav-button" onclick="window.open('/api/images', '_blank')">
+                            📊 API Endpoint
+                        </button>
+                        <button class="nav-button" onclick="alert('n8n integration ready! See DOCKER_SETUP.md')">
+                            🤖 n8n Automation
+                        </button>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Images:</span>
+                            <span class="stat-value">""" + str(len(images)) + """</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Camera IP:</span>
+                            <span class="stat-value">10.0.0.30</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Status:</span>
+                            <span class="stat-value">🟢 Online</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="live-feed">
-                    <h2>Live Camera Feed</h2>
-                    <img id="liveImage" src="http://10.0.0.30/capture" alt="Live Camera" onload="this.style.display='block'" onerror="this.style.display='none'">
-                    <br><br>
-                    <button onclick="captureLive()">📸 Capture New Image</button>
-                </div>
-                
-                <div class="controls">
-                    <button onclick="refreshPage()">🔄 Refresh Gallery</button>
-                    <button onclick="window.open('http://10.0.0.30', '_blank')">🌐 Open ESP32 Interface</button>
-                </div>
-                
-                <h2 style="text-align: center;">Captured Images</h2>
+                <!-- Main Content Area -->
+                <div class="main-content">
+                    <div class="header">
+                        <h2>📷 Camera Gallery</h2>
+                        <p>Real-time ESP32 camera monitoring and image management</p>
+                    </div>
+                    
+                    <div class="live-feed">
+                        <h3>Live Camera Feed</h3>
+                        <img id="liveImage" src="http://10.0.0.30/capture" alt="Live Camera" onload="this.style.display='block'" onerror="this.style.display='none'">
+                    </div>
+                    
+                    <h3 style="color: #00979D; margin-bottom: 20px;">Captured Images</h3>
             """
             
             if images:
@@ -256,11 +476,12 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                     <div class="image-card">
                         <img src="{CAPTURE_DIR}/{img_name}" alt="{img_name}" onclick="openImage('{CAPTURE_DIR}/{img_name}')">
                         <div class="image-info">
-                            <strong>{img_name}</strong><br>
+                            <strong>{img_name}</strong>
                             Time: {timestamp}<br>
                             Size: {img_size_kb:.1f} KB
                         </div>
                         <div class="image-actions">
+                            <button class="btn-chat" onclick="chatWithImage('{img_name}')">💬 Chat</button>
                             <button class="btn-rename" onclick="renameImage('{img_name}')">🏷️ Rename</button>
                             <button class="btn-delete" onclick="deleteImage('{img_name}')">🗑️ Delete</button>
                         </div>
@@ -268,9 +489,10 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                     '''
                 html += '</div>'
             else:
-                html += '<div class="no-images">No images captured yet. Click "Capture New Image" above to start!</div>'
+                html += '<div class="no-images">No images captured yet. Click "Capture New Image" in the sidebar to start!</div>'
             
             html += """
+                </div>
             </body>
             </html>
             """
