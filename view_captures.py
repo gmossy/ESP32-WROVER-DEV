@@ -301,6 +301,53 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                         border-radius: 12px;
                     }
                     
+                    .system-check {
+                        background: rgba(255,255,255,0.1);
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .check-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin: 8px 0;
+                        font-size: 13px;
+                    }
+                    
+                    .check-label {
+                        color: rgba(255,255,255,0.9);
+                    }
+                    
+                    .status-indicator {
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 50%;
+                        display: inline-block;
+                        margin-right: 5px;
+                    }
+                    
+                    .status-online {
+                        background: #4CAF50;
+                        box-shadow: 0 0 5px #4CAF50;
+                    }
+                    
+                    .status-offline {
+                        background: #f44336;
+                        box-shadow: 0 0 5px #f44336;
+                    }
+                    
+                    .status-checking {
+                        background: #ff9800;
+                        animation: pulse 1.5s infinite;
+                    }
+                    
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                    }
+                    
                     /* Responsive */
                     @media (max-width: 768px) {
                         .sidebar {
@@ -390,6 +437,58 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                         // TODO: Implement chat/AI analysis feature
                     }
                     
+                    // System status checks
+                    function checkESP32Status() {
+                        const indicator = document.getElementById('esp32-status');
+                        const text = document.getElementById('esp32-text');
+                        
+                        fetch('/api/status/esp32')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'online') {
+                                    indicator.className = 'status-indicator status-online';
+                                    text.textContent = 'Online';
+                                } else {
+                                    indicator.className = 'status-indicator status-offline';
+                                    text.textContent = 'Offline';
+                                }
+                            })
+                            .catch(() => {
+                                indicator.className = 'status-indicator status-offline';
+                                text.textContent = 'Error';
+                            });
+                    }
+                    
+                    function checkN8NStatus() {
+                        const indicator = document.getElementById('n8n-status');
+                        const text = document.getElementById('n8n-text');
+                        
+                        fetch('/api/status/n8n')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'running') {
+                                    indicator.className = 'status-indicator status-online';
+                                    text.textContent = 'Running';
+                                } else {
+                                    indicator.className = 'status-indicator status-offline';
+                                    text.textContent = 'Stopped';
+                                }
+                            })
+                            .catch(() => {
+                                indicator.className = 'status-indicator status-offline';
+                                text.textContent = 'Error';
+                            });
+                    }
+                    
+                    // Run checks on page load
+                    window.onload = function() {
+                        checkESP32Status();
+                        checkN8NStatus();
+                        // Recheck every 10 seconds
+                        setInterval(checkESP32Status, 10000);
+                        setInterval(checkN8NStatus, 10000);
+                    };
+                    
                     // Auto-refresh live feed every 5 seconds
                     setInterval(captureLive, 5000);
                 </script>
@@ -398,30 +497,42 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                 <!-- Arduino-styled Sidebar -->
                 <div class="sidebar">
                     <div class="logo">
-                        <h1>🎥 ESP32 CAM</h1>
+                        <h1>ESP32 CAM</h1>
                         <p>Arduino Camera Gallery</p>
+                    </div>
+                    
+                    <div class="system-check">
+                        <h3 style="color: rgba(255,255,255,0.7); font-size: 12px; text-transform: uppercase; margin-bottom: 10px;">System Status</h3>
+                        <div class="check-item">
+                            <span class="check-label">ESP32 Camera</span>
+                            <span><span id="esp32-status" class="status-indicator status-checking"></span><span id="esp32-text">Checking...</span></span>
+                        </div>
+                        <div class="check-item">
+                            <span class="check-label">n8n Docker</span>
+                            <span><span id="n8n-status" class="status-indicator status-checking"></span><span id="n8n-text">Checking...</span></span>
+                        </div>
                     </div>
                     
                     <div class="nav-section">
                         <h3>Actions</h3>
                         <button class="nav-button primary" onclick="captureLive()">
-                            📸 Capture New Image
+                            Capture New Image
                         </button>
                         <button class="nav-button" onclick="refreshPage()">
-                            🔄 Refresh Gallery
+                            Refresh Gallery
                         </button>
                         <button class="nav-button" onclick="window.open('http://10.0.0.30', '_blank')">
-                            🌐 ESP32 Interface
+                            ESP32 Interface
                         </button>
                     </div>
                     
                     <div class="nav-section">
-                        <h3>Settings</h3>
-                        <button class="nav-button" onclick="window.open('/api/images', '_blank')">
-                            📊 API Endpoint
+                        <h3>Automation</h3>
+                        <button class="nav-button" onclick="window.open('http://localhost:5678', '_blank')">
+                            n8n Automation
                         </button>
-                        <button class="nav-button" onclick="alert('n8n integration ready! See DOCKER_SETUP.md')">
-                            🤖 n8n Automation
+                        <button class="nav-button" onclick="window.open('/api/images', '_blank')">
+                            API Endpoint
                         </button>
                     </div>
                     
@@ -434,17 +545,13 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                             <span class="stat-label">Camera IP:</span>
                             <span class="stat-value">10.0.0.30</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Status:</span>
-                            <span class="stat-value">🟢 Online</span>
-                        </div>
                     </div>
                 </div>
                 
                 <!-- Main Content Area -->
                 <div class="main-content">
                     <div class="header">
-                        <h2>📷 Camera Gallery</h2>
+                        <h2>Camera Gallery</h2>
                         <p>Real-time ESP32 camera monitoring and image management</p>
                     </div>
                     
@@ -481,9 +588,9 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                             Size: {img_size_kb:.1f} KB
                         </div>
                         <div class="image-actions">
-                            <button class="btn-chat" onclick="chatWithImage('{img_name}')">💬 Chat</button>
-                            <button class="btn-rename" onclick="renameImage('{img_name}')">🏷️ Rename</button>
-                            <button class="btn-delete" onclick="deleteImage('{img_name}')">🗑️ Delete</button>
+                            <button class="btn-chat" onclick="chatWithImage('{img_name}')">Chat</button>
+                            <button class="btn-rename" onclick="renameImage('{img_name}')">Rename</button>
+                            <button class="btn-delete" onclick="deleteImage('{img_name}')">Delete</button>
                         </div>
                     </div>
                     '''
@@ -498,6 +605,50 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
             """
             
             self.wfile.write(html.encode())
+        
+        elif self.path == '/api/status/esp32':
+            # API endpoint to check ESP32 status
+            import socket
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            try:
+                # Try to connect to ESP32
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(2)
+                result = sock.connect_ex((ESP32_IP, 80))
+                sock.close()
+                
+                if result == 0:
+                    self.wfile.write(json.dumps({'status': 'online'}).encode())
+                else:
+                    self.wfile.write(json.dumps({'status': 'offline'}).encode())
+            except:
+                self.wfile.write(json.dumps({'status': 'offline'}).encode())
+        
+        elif self.path == '/api/status/n8n':
+            # API endpoint to check n8n status
+            import socket
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            try:
+                # Try to connect to n8n
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(2)
+                result = sock.connect_ex(('localhost', 5678))
+                sock.close()
+                
+                if result == 0:
+                    self.wfile.write(json.dumps({'status': 'running'}).encode())
+                else:
+                    self.wfile.write(json.dumps({'status': 'stopped'}).encode())
+            except:
+                self.wfile.write(json.dumps({'status': 'stopped'}).encode())
         
         elif self.path == '/api/images':
             # API endpoint to list all images (for n8n)

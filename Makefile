@@ -86,7 +86,7 @@ viewer:
 
 docker:
 	@echo "$(GREEN)Starting Docker services...$(NC)"
-	@cd n8n && docker-compose up -d
+	@cd n8n && docker compose up -d
 	@echo "$(GREEN)Docker services started!$(NC)"
 	@echo "n8n:          http://localhost:5678"
 	@echo "Image Viewer: http://localhost:8080"
@@ -94,17 +94,17 @@ docker:
 
 docker-stop:
 	@echo "$(YELLOW)Stopping Docker services...$(NC)"
-	@cd n8n && docker-compose down
+	@cd n8n && docker compose down
 	@echo "$(GREEN)Docker services stopped$(NC)"
 
 docker-logs:
-	@cd n8n && docker-compose logs -f
+	@cd n8n && docker compose logs -f
 
 docker-rebuild:
 	@echo "$(GREEN)Rebuilding Docker containers...$(NC)"
-	@cd n8n && docker-compose down
-	@cd n8n && docker-compose build --no-cache
-	@cd n8n && docker-compose up -d
+	@cd n8n && docker compose down
+	@cd n8n && docker compose build --no-cache
+	@cd n8n && docker compose up -d
 
 clean:
 	@echo "$(YELLOW)Cleaning build files...$(NC)"
