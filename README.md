@@ -8,6 +8,11 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
+## 📸 Screenshots
+
+![ESP32 Camera Gallery](docs/images/ui-screenshot.png)
+*Modern Arduino-branded UI with real-time system status monitoring*
+
 ## 🎯 What is This?
 
 This is a complete camera system running on the **Freenove ESP32-WROVER-DEV** board with built-in camera module. It's like having a smart security camera that you can control with code, automate with workflows, and integrate with AI services!
