@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # n8n workflow automation
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: esp32-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=changeme123
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/New_York
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/home/node/.n8n/workflows
+    networks:
+      - esp32-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Python image viewer and API server
+  image-viewer:
+    build:
+      context: .
+      dockerfile: Dockerfile.viewer
+    container_name: esp32-image-viewer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./captures:/app/captures
+      - ./view_captures.py:/app/view_captures.py
+    environment:
+      - ESP32_IP=10.0.0.30
+      - PORT=8080
+    networks:
+      - esp32-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  n8n_data:
+    driver: local
+
+networks:
+  esp32-network:
+    driver: bridge

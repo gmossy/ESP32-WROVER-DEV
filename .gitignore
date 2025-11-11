@@ -40,3 +40,13 @@ README_OLD.md
 
 # Logs
 *.log
+
+# Docker
+.env
+
+# n8n data
+n8n-workflows/*.json
+!n8n-workflows/example-*.json
+
+# Arduino config files (contain WiFi credentials)
+**/config.h

@@ -13,8 +13,9 @@ import shutil
 from pathlib import Path
 from datetime import datetime
 
-PORT = 8080
-CAPTURE_DIR = "captures"
+PORT = int(os.getenv('PORT', 8080))
+CAPTURE_DIR = os.getenv('CAPTURE_DIR', 'captures')
+ESP32_IP = os.getenv('ESP32_IP', '10.0.0.30')
 
 class CaptureHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -310,7 +311,7 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"{CAPTURE_DIR}/capture_{timestamp}_api.jpg"
                 
-                req = urllib.request.Request('http://10.0.0.30/capture', method='GET')
+                req = urllib.request.Request(f'http://{ESP32_IP}/capture', method='GET')
                 with urllib.request.urlopen(req, timeout=5) as response:
                     if response.status == 200:
                         image_data = response.read()
@@ -408,8 +409,11 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
 
 if __name__ == "__main__":
-    with socketserver.TCPServer(("127.0.0.1", PORT), CaptureHandler) as httpd:
-        print(f"✓ Image viewer server running at http://127.0.0.1:{PORT}/")
+    # Bind to 0.0.0.0 for Docker, 127.0.0.1 for local
+    host = "0.0.0.0" if os.getenv('DOCKER', 'false').lower() == 'true' else "127.0.0.1"
+    with socketserver.TCPServer((host, PORT), CaptureHandler) as httpd:
+        print(f"✓ Image viewer server running at http://{host}:{PORT}/")
+        print(f"✓ ESP32 Camera IP: {ESP32_IP}")
         print(f"✓ Serving images from: {os.path.abspath(CAPTURE_DIR)}/")
         print(f"✓ Press Ctrl+C to stop")
         try:

@@ -1,20 +1,14 @@
 /*
  * ESP32-S3 Low Power Web Server
  * Reduced power consumption version
+ * 
+ * IMPORTANT: Run 'python3 generate_config.py' to create config.h from .env
  */
 
 #include <WiFi.h>
 #include <WebServer.h>
 #include <esp_wifi.h>
-
-// WiFi credentials
-const char* ssid = "FOOTBALL";
-const char* password = "cities3976";
-
-// Static IP configuration
-IPAddress local_IP(10, 0, 0, 30);
-IPAddress gateway(10, 0, 0, 1);
-IPAddress subnet(255, 255, 255, 0);
+#include "config.h"  // WiFi credentials and network config from .env
 
 // Create web server
 WebServer server(80);
