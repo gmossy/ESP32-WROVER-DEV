@@ -378,6 +378,39 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                             .catch(error => console.error('Error:', error));
                     }
                     
+                    function captureAndSave() {
+                        // Show loading state
+                        const btn = event.target;
+                        const originalText = btn.textContent;
+                        btn.textContent = 'Capturing...';
+                        btn.disabled = true;
+                        
+                        // Call API to capture and save image
+                        fetch('/api/capture')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update live feed
+                                    captureLive();
+                                    // Show success message
+                                    btn.textContent = 'Captured!';
+                                    // Reload page after 1 second to show new image in gallery
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 1000);
+                                } else {
+                                    alert('Capture failed: ' + (data.error || 'Unknown error'));
+                                    btn.textContent = originalText;
+                                    btn.disabled = false;
+                                }
+                            })
+                            .catch(error => {
+                                alert('Error capturing image: ' + error);
+                                btn.textContent = originalText;
+                                btn.disabled = false;
+                            });
+                    }
+                    
                     function openImage(src) {
                         window.open(src, '_blank');
                     }
@@ -515,7 +548,7 @@ class CaptureHandler(http.server.SimpleHTTPRequestHandler):
                     
                     <div class="nav-section">
                         <h3>Actions</h3>
-                        <button class="nav-button primary" onclick="captureLive()">
+                        <button class="nav-button primary" onclick="captureAndSave()">
                             Capture New Image
                         </button>
                         <button class="nav-button" onclick="refreshPage()">
