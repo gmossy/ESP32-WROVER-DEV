@@ -83,9 +83,7 @@ def main():
     # Generate config for each sketch directory
     sketch_dirs = [
         'camera_webserver',
-        'low_power_webserver',
-        'webserver',
-        'simple'
+        'low_power_webserver'
     ]
     
     success_count = 0

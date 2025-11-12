@@ -5,7 +5,7 @@
 
 [![ESP32](https://img.shields.io/badge/ESP32-WROVER--DEV-blue.svg)](https://www.espressif.com/)
 [![Arduino](https://img.shields.io/badge/Arduino-Compatible-green.svg)](https://www.arduino.cc/)
-[![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.13-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
 ## 📸 Screenshots
@@ -15,15 +15,27 @@
 
 ## 🎯 What is This?
 
-This is a complete camera system running on the **Freenove ESP32-WROVER-DEV** board with built-in camera module. It's like having a smart security camera that you can control with code, automate with workflows, and integrate with AI services!
+This is a **complete IoT camera system** running on the **Freenove ESP32-WROVER-DEV** board with built-in OV2640 camera module. Transform your ESP32 into a smart security camera with web interface, RESTful API, and automation capabilities!
 
-Think of it as your personal IoT camera that can:
-- �� Capture images on demand or on schedule
-- 🤖 Integrate with n8n for automation workflows
-- 🧠 Send images to AI services for analysis
-- 🏷️ Auto-label images based on content
-- 📊 Track motion, visitors, or any visual events
-- 🌐 Access from anywhere on your network
+### What Makes This Special?
+
+Unlike simple camera examples, this project provides:
+
+- **Production-Ready Code**: Secure credential management with `.env` files
+- **Full Web Interface**: Python-based gallery with live feed, image management, and API
+- **Hardware Diagnostics**: Comprehensive test suite to verify your board
+- **Automation Ready**: Built for n8n workflows and AI integration
+- **Power Optimized**: Low-power variant for battery operation
+
+### Real-World Use Cases
+
+- 📸 **Smart Security Camera** - Capture images on demand or on schedule
+- 🤖 **AI Integration** - Send images to OpenAI Vision, AWS Rekognition, or Google Vision
+- 🏷️ **Auto-Labeling** - Automatically categorize and tag images based on content
+- 📊 **Visitor Tracking** - Monitor who comes to your door with motion detection
+- 🌱 **Time-Lapse Projects** - Track plant growth, construction, or weather
+- 🔔 **Smart Alerts** - Get notified via email/Slack when motion is detected
+- 🌐 **Remote Monitoring** - Access from anywhere on your network
 
 ### ✨ Features That'll Make You Smile
 
@@ -48,50 +60,96 @@ Think of it as your personal IoT camera that can:
 - WiFi network (2.4GHz - ESP32 doesn't support 5GHz)
 - Computer with Arduino IDE or arduino-cli
 
-## 🚀 Quick Start (5 Minutes to Camera Bliss!)
+## 🚀 Quick Start Guide
 
-### 1. Install ESP32 Board Support
+### Step 1: Install Prerequisites
 
 ```bash
+# Install ESP32 board support
 arduino-cli core install esp32:esp32
+
+# Verify Python 3 is installed
+python3 --version
 ```
 
-### 2. Clone This Repository
+### Step 2: Clone and Configure
 
 ```bash
+# Clone this repository
 git clone https://github.com/gmossy/ESP32-WROVER-DEV.git
 cd ESP32-WROVER-DEV
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your WiFi credentials
+nano .env  # or use your preferred editor
 ```
 
-### 3. Configure WiFi Credentials
-
-Edit `camera_webserver/camera_webserver.ino`:
-
-```cpp
-const char* ssid = "YOUR_WIFI_NAME";
-const char* password = "YOUR_WIFI_PASSWORD";
-```
-
-### 4. Upload the Camera Sketch
+Update these values in `.env`:
 
 ```bash
+WIFI_SSID=YOUR_WIFI_NAME
+WIFI_PASSWORD=YOUR_WIFI_PASSWORD
+ESP32_IP=10.0.0.30
+ESP32_GATEWAY=10.0.0.1
+ESP32_SUBNET=255.255.255.0
+```
+
+### Step 3: Run Hardware Test (Recommended)
+
+Before uploading the camera server, verify your board works:
+
+```bash
+# Find your ESP32 port
+arduino-cli board list
+
+# Compile and upload hardware test
+cd hardware_test
+arduino-cli compile --fqbn esp32:esp32:esp32wrover .
+arduino-cli upload --fqbn esp32:esp32:esp32wrover --port /dev/cu.usbserial-143130 --upload-property upload.speed=115200 .
+
+# Monitor serial output
+arduino-cli monitor -p /dev/cu.usbserial-143130 -c baudrate=115200
+```
+
+**What the hardware test does:**
+
+- ✅ Verifies chip info (model, revision, memory)
+- ✅ Tests LED functionality with blink pattern
+- ✅ Tests serial I/O (type "TEST" when prompted)
+- ✅ Displays PSRAM detection
+- ✅ Shows continuous heartbeat and memory stats
+
+> **Note:** Replace `/dev/cu.usbserial-143130` with your actual port from `arduino-cli board list`
+
+### Step 4: Generate Config and Upload Camera Server
+
+```bash
+# Generate config.h files from .env
+python3 generate_config.py
+
+# Upload camera webserver
 cd camera_webserver
 arduino-cli compile --fqbn esp32:esp32:esp32wrover .
 arduino-cli upload --fqbn esp32:esp32:esp32wrover --port /dev/cu.usbserial-143130 --upload-property upload.speed=115200 .
 ```
 
-> **Note:** Replace `/dev/cu.usbserial-143130` with your actual port. Find it with: `arduino-cli board list`
-
-### 5. Start the Image Viewer
+### Step 5: Start the Image Viewer
 
 ```bash
+# Return to project root
+cd ..
+
+# Start the Python web server
 python3 view_captures.py
 ```
 
-### 6. Open Your Browser
+### Step 6: Access Your Camera
 
-- **Camera Interface:** <http://10.0.0.30>
-- **Image Gallery:** <http://127.0.0.1:8080>
+Open your browser:
+- **ESP32 Camera Interface:** <http://10.0.0.30>
+- **Image Gallery & API:** <http://127.0.0.1:8080>
 
 **That's it!** You're now running a full-featured camera system! 🎉
 
@@ -178,41 +236,85 @@ Send Email/Slack (with image)
 ## 📁 Project Structure
 
 ```text
-ESP32-WROVER-DEV/
+ESP32-webserver/
 ├── README.md                    # You are here!
-├── CONFIGURATION.md             # WiFi credentials setup guide
-├── API_QUICK_REFERENCE.md       # Quick API reference
+├── .env                         # WiFi credentials (not in git)
+├── .env.example                 # Template for credentials
+├── generate_config.py           # Generates config.h from .env
+├── view_captures.py             # Image gallery web server
 ├── Makefile                     # Build automation
-├── camera_webserver/
-│   └── camera_webserver.ino    # Main camera sketch
-├── low_power_webserver/
-│   └── low_power_webserver.ino # Power-optimized version
-├── n8n/                        # Docker & n8n automation
+├── CONFIGURATION.md             # Detailed setup guide
+├── API_QUICK_REFERENCE.md       # Quick API reference
+│
+├── camera_webserver/            # 📸 Main Production Sketch
+│   ├── camera_webserver.ino    # Camera web server code
+│   └── config.h                # Auto-generated (not in git)
+│
+├── low_power_webserver/         # ⚡ Power-Optimized Version
+│   ├── low_power_webserver.ino # Low power camera server
+│   └── config.h                # Auto-generated (not in git)
+│
+├── hardware_test/               # 🔧 Board Diagnostics
+│   └── hardware_test.ino       # Comprehensive hardware test
+│
+├── low_power/                   # 🔋 Power Test (no WiFi)
+│   └── low_power.ino           # Ultra low power test
+│
+├── n8n/                        # 🤖 Automation & Docker
 │   ├── README.md               # Docker setup guide
-│   ├── N8N_INTEGRATION.md      # n8n integration guide
+│   ├── N8N_INTEGRATION.md      # n8n workflow guide
 │   ├── docker-compose.yml      # Docker services
 │   └── Dockerfile.viewer       # Image viewer container
-├── view_captures.py            # Image gallery web server
-├── test.py                     # Diagnostic & testing script
-├── generate_config.py          # Config generator from .env
-└── captures/                   # Saved images folder
+│
+├── docs/                       # 📚 Documentation
+│   └── images/                 # Screenshots
+│
+└── captures/                   # 💾 Saved images folder
 ```
+
+### Sketch Overview
+
+| Sketch | Purpose | WiFi | Camera |
+|--------|---------|------|--------|
+| `camera_webserver` | Main production camera server | ✅ | ✅ |
+| `low_power_webserver` | Battery-optimized camera server | ✅ | ❌ |
+| `hardware_test` | Board diagnostics & verification | ❌ | ❌ |
+| `low_power` | Ultra low power test (no WiFi) | ❌ | ❌ |
 
 ## 🔧 Configuration
 
-### WiFi Settings
+### WiFi Settings (Secure Method)
 
-Edit the sketch to match your network:
+This project uses `.env` files to keep credentials out of your code:
+
+**1. Edit `.env` file:**
+
+```bash
+WIFI_SSID=YOUR_WIFI_NAME
+WIFI_PASSWORD=YOUR_WIFI_PASSWORD
+ESP32_IP=10.0.0.30
+ESP32_GATEWAY=10.0.0.1
+ESP32_SUBNET=255.255.255.0
+```
+
+**2. Generate config files:**
+
+```bash
+python3 generate_config.py
+```
+
+This creates `config.h` files in each sketch directory:
 
 ```cpp
+// Auto-generated config.h (not committed to git)
 const char* ssid = "YOUR_WIFI_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";
-
-// Static IP (optional)
 IPAddress local_IP(10, 0, 0, 30);
 IPAddress gateway(10, 0, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 ```
+
+> **Security Note:** `config.h` files are in `.gitignore` and will NOT be committed to version control!
 
 ### Camera Settings
 
@@ -225,6 +327,7 @@ config.fb_count = 2;                 // Frame buffers
 ```
 
 Available resolutions:
+
 - `FRAMESIZE_UXGA` (1600x1200) - Highest quality
 - `FRAMESIZE_SVGA` (800x600) - Balanced
 - `FRAMESIZE_VGA` (640x480) - Lower bandwidth
@@ -240,31 +343,79 @@ PORT = 8080  # Change to your preferred port
 
 ## 🧪 Testing & Diagnostics
 
-### Run Comprehensive Tests
+### Hardware Test (Recommended First Step)
+
+Before deploying the camera server, run the comprehensive hardware test:
 
 ```bash
-python3 test.py
+cd hardware_test
+arduino-cli compile --fqbn esp32:esp32:esp32wrover .
+arduino-cli upload --fqbn esp32:esp32:esp32wrover --port /dev/cu.usbserial-143130 --upload-property upload.speed=115200 .
+arduino-cli monitor -p /dev/cu.usbserial-143130 -c baudrate=115200
 ```
 
-This will test:
-- ✅ ESP32 port detection
-- ✅ Network connectivity (ping)
-- ✅ TCP port 80 status
-- ✅ HTTP requests
-- ✅ Camera image capture
-- ✅ Serial monitor output
+**The hardware test verifies:**
 
-### Manual Tests
+#### TEST 1: Chip Information
+
+- Chip model and revision
+- Flash and PSRAM size
+- Free heap memory
+- CPU frequency
+- MAC address
+
+#### TEST 2: LED Hardware
+
+- 3-blink pattern test
+- Visual confirmation LED works
+- Serial feedback for each blink
+
+#### TEST 3: Serial I/O
+
+- Interactive input test
+- Type "TEST" when prompted
+- Verifies serial communication
+
+#### Continuous Monitoring
+
+- Heartbeat LED blink (1 second)
+- Periodic uptime and memory reports
+- Dots printed every second
+
+### Camera Server Tests
+
+Once the camera server is running:
 
 ```bash
-# Test camera directly
+# Test camera directly from ESP32
 curl http://10.0.0.30/capture -o test.jpg
 
-# Check if image viewer is running
+# Verify image was captured
+open test.jpg  # macOS
+# or
+xdg-open test.jpg  # Linux
+
+# Check if image viewer API is running
 curl http://127.0.0.1:8080/api/images
 
-# Monitor serial output
+# Capture via API (saves to captures/ folder)
+curl http://127.0.0.1:8080/api/capture
+
+# Monitor ESP32 serial output
 arduino-cli monitor -p /dev/cu.usbserial-143130 -c baudrate=115200
+```
+
+### Network Diagnostics
+
+```bash
+# Check if ESP32 is on network
+ping 10.0.0.30
+
+# Check if port 80 is open
+nc -zv 10.0.0.30 80
+
+# Find your ESP32 port
+arduino-cli board list
 ```
 
 ## 🎓 Learning Resources

@@ -24,6 +24,47 @@ services:
       - esp32-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5678/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: esp32-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../captures:/app/captures
+    environment:
+      - ENVIRONMENT=production
+      - ESP32_IP=10.0.0.30
+      - ESP32_PORT=80
+      - N8N_URL=http://n8n:5678
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=changeme123
+      - CAPTURE_DIR=/app/captures
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - MOTION_SENSOR_ENABLED=false
+      - LCD_SCREEN_ENABLED=false
+    networks:
+      - esp32-network
+    depends_on:
+      - n8n
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # Python image viewer and API server
   image-viewer:
@@ -44,6 +85,12 @@ services:
       - esp32-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/images"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   n8n_data:

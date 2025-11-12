@@ -3,6 +3,8 @@
  * Captures and serves images from ESP32 camera module
  * 
  * IMPORTANT: Run 'python3 generate_config.py' to create config.h from .env
+ * Created by: Glenn Mossy
+ * Date: 2025-11-12
  */
 
 #include <WiFi.h>

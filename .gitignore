@@ -23,16 +23,20 @@ build/
 *.swo
 *~
 
-# OS
+# OS - macOS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+.AppleDouble
+.LSOverride
+Icon
 
-# Captures folder (images)
-captures/*.jpg
-captures/*.jpeg
-captures/*.png
-
-# Keep captures folder structure
+# Captures folder (images) - ignore all image files
+captures/
 !captures/.gitkeep
 
 # Old files
